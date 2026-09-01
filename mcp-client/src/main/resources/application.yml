@@ -1,0 +1,30 @@
+# 避免占用目标服务 8080 端口
+server:
+  port: 8090
+
+# Nacos 服务发现（从注册中心寻址目标服务）
+#  - enabled: true  -> 优先从 Nacos 发现，覆盖 mcp.base-url
+#  - enabled: false -> 使用 mcp.base-url 直连/走网关
+nacos:
+  enabled: true
+  server-addr: 127.0.0.1:8848
+  # 发现目标：open-cloud-mcpgateway（网关）/ mcp-server（直连 server）
+  service-name: open-cloud-mcpgateway
+
+# MCP 服务地址与认证
+# base-url: 回退地址（Nacos 发现失败时使用）；连网关走 tokenApply 换 token
+mcp:
+  base-url: http://localhost:8080
+  client-id: dev-client-1
+  client-secret: dev-secret
+  # 身份模式：token（网关 tokenApply 换 JWT）/ channel（内网 X-Channel-Id + who-am-i）
+  auth-mode: token
+  channel-id: ""
+  who-am-i: hao
+  # 通讯协议模式与请求路径（网关路由）：
+  #   sse  -> /mcpserver/demo（weather/echo/getQuote/getMetrics）
+  #   sync -> /mcpserver/demo-sync（date/calculator/translate/getUser/getOrder/getStock）
+  #   ndjson -> /mcpserver/demo-ndjson（weather/echo/getQuote/getMetrics）
+  mode: sse
+  path: /mcpserver/demo
+  token: ""

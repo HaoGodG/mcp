@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 日志按调用方（clientName，来自 MCP clientInfo.name / MDC）拆分文件，
+         每个调用方一个目录，按天轮转，保留 7 天 -->
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} : %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 按调用方拆分 + 按天轮转（保留 7 天） -->
+    <appender name="SPLIT_FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator>
+            <key>clientName</key>
+            <defaultValue>unknown</defaultValue>
+        </discriminator>
+        <sift>
+            <appender name="FILE-${clientName}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <file>logs/mcp-server/${clientName}/app.log</file>
+                <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                    <!-- 按天轮转 -->
+                    <fileNamePattern>logs/mcp-server/${clientName}/app-%d{yyyy-MM-dd}.log</fileNamePattern>
+                    <!-- 保留 7 天 -->
+                    <maxHistory>7</maxHistory>
+                </rollingPolicy>
+                <encoder>
+                    <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} : %msg%n</pattern>
+                    <charset>UTF-8</charset>
+                </encoder>
+            </appender>
+        </sift>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="SPLIT_FILE"/>
+    </root>
+</configuration>

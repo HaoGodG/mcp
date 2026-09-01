@@ -1,0 +1,12 @@
+server:
+  port: 8081
+
+# Nacos 服务注册
+nacos:
+  enabled: true
+  server-addr: 127.0.0.1:8848
+  service-name: mcp-server
+
+logging:
+  level:
+    org.springframework.web: DEBUG
