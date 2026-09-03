@@ -244,12 +244,15 @@ curl -s -o /dev/null -w '终止后再调(应404): %{http_code}\n' -X POST http:/
 
 ## 九、经网关访问（Nacos 服务发现）
 
+> 网关接口以最新接口文档为准（`/Users/hao/IdeaProjects/mcp-gateway/mcp-gateway/docs/接口文档.md`）
+> 对外入口：nginx `:8088`（唯一对外路径）；内网：Nacos 发现 `open-cloud-mcpgateway`
+
 | 网关路由 | 对应后端 | 说明 |
 |---|---|---|
-| `POST /mcpserver/demo` | `nacos://mcp-server/mcp`（标准端点） | 全部 10 个工具（网关透传，内容协商保持） |
-| `POST /mcpserver/demo-sync` | `nacos://mcp-server/mcp/sync`（兼容） | 仅同步工具 |
-| `POST /mcpserver/demo-ndjson` | `nacos://mcp-server/mcp/ndjson`（扩展） | NDJSON 流 |
+| `POST /mcp-server` | `nacos://mcp-server/mcp`（标准端点） | mcp-server 全部 10 工具（tools/list 按用户勾选过滤） |
+| `POST /sdk-server` | sdk-server 直连 8084（网关经 mcp-sdk RSA 加密通信） | 5 个同步工具 |
 
+- 身份规则（业务路由统一）：`Authorization: Bearer <JWT>`（tokenApply 换）**或** `X-Channel-Id: <userId>` + `who-am-i: hao`（内网通道），二选一
 - 客户端经网关：`tokenApply 换 JWT → Authorization: Bearer`（网关鉴权 + 工具 catalog 过滤）
 - 网关 target 为 `nacos://mcp-server`：网关自身从 Nacos 发现后端实例
-- 个性化入口（/personalize）不经过网关路由，SDK 直连或配置外部地址
+- 个性化入口（/personalize）为 sdk-server 直连接口，不经网关路由

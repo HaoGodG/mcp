@@ -32,9 +32,10 @@ cd mcp-server && mvn spring-boot:run
 # 3. sdk-server（8084，直连）
 cd sdk-server && mvn spring-boot:run
 
-# 4. mcp-client（8090，演示完整流程；参数覆盖目标服务）
-cd mcp-client && mvn spring-boot:run \
-  -Dspring-boot.run.arguments="--mcp.path=/mcp-server --mcp.base-url=http://127.0.0.1:8088 --mcp.auth-mode=token"
+# 4. mcp-client（8090，演示完整流程 + 全工具遍历；默认配置：token → 8088 → /mcp-server）
+cd mcp-client && mvn spring-boot:run
+# channel 模式示例（内网通道 → Nacos 发现网关 → /sdk-server）：
+#   mvn spring-boot:run -Dspring-boot.run.arguments="--mcp.mode=sync --mcp.path=/sdk-server --mcp.auth-mode=channel --mcp.channel-id=client-channel-out --mcp.who-am-i=hao"
 
 # 5. SDK 集成（外部工程引入）
 # 见 dist/DEV_GUIDE.md

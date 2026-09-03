@@ -14,17 +14,16 @@ nacos:
 # MCP 服务地址与认证
 # base-url: 回退地址（Nacos 发现失败时使用）；连网关走 tokenApply 换 token
 mcp:
-  base-url: http://localhost:8080
-  client-id: dev-client-1
+  base-url: http://127.0.0.1:8088
+  client-id: client-from-out
   client-secret: dev-secret
   # 身份模式：token（网关 tokenApply 换 JWT）/ channel（内网 X-Channel-Id + who-am-i）
   auth-mode: token
   channel-id: ""
   who-am-i: hao
   # 通讯协议模式与请求路径（网关路由）：
-  #   sse  -> /mcpserver/demo（weather/echo/getQuote/getMetrics）
-  #   sync -> /mcpserver/demo-sync（date/calculator/translate/getUser/getOrder/getStock）
-  #   ndjson -> /mcpserver/demo-ndjson（weather/echo/getQuote/getMetrics）
+  #   sse  -> /mcp-server（mcp-server，weather/getQuote 等流式 + 同步）
+  #   sync -> /sdk-server（sdk-server，5 个同步工具）
   mode: sse
-  path: /mcpserver/demo
+  path: /mcp-server
   token: ""
