@@ -151,6 +151,10 @@ public class McpServerController {
                         "tools", toolService.listAllTools()
                 )));
 
+            case "ping":
+                // MCP 标准 ping 请求：成功响应的 result 可以为空对象。
+                return writeJson(exchange, ok(id, Map.of()));
+
             case "tools/call": {
                 Map<String, Object> params = (Map<String, Object>) request.getParams();
                 String name = (String) params.get("name");
@@ -241,6 +245,8 @@ public class McpServerController {
                 return ok(id, Map.of(
                         "tools", toolService.listTools(ToolService.PROTOCOL_SYNC)
                 ));
+            case "ping":
+                return ok(id, Map.of());
             case "tools/call": {
                 Map<String, Object> params = (Map<String, Object>) request.getParams();
                 String name = (String) params.get("name");

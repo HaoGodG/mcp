@@ -1,9 +1,8 @@
 package client.request;
 
-import client.entity.McpRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
@@ -16,6 +15,9 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 import java.util.Map;
 import java.util.UUID;
+
+import client.entity.McpRequest;
+import lombok.RequiredArgsConstructor;
 
 /**
  * 标准 MCP 客户端（JSON-RPC 2.0）
@@ -85,15 +87,19 @@ public class McpClient {
             JsonNode init = initialize();
             System.out.println("[2/4] initialize => " + pretty(init));
 
-            // 3️⃣ tools/list 工具列表
-            JsonNode tools = listTools();
-            System.out.println("[3/4] tools/list => " + pretty(tools));
+            // 3️⃣ ping 保活/链路检查
+            JsonNode ping = ping();
+            System.out.println("[3/5] ping => " + pretty(ping));
 
-            // 4️⃣ tools/call 调用工具（按协议模式选工具：sync 端点没有流式工具）
+            // 4️⃣ tools/list 工具列表
+            JsonNode tools = listTools();
+            System.out.println("[4/5] tools/list => " + pretty(tools));
+
+            // 5️⃣ tools/call 调用工具（按协议模式选工具：sync 端点没有流式工具）
             JsonNode result = "sync".equals(mode)
                     ? callTool("calculator", Map.of("expression", "(1+2)*3"))
                     : callTool("weather", Map.of("city", "宁波"));
-            System.out.println("[4/4] tools/call => " + pretty(result));
+            System.out.println("[5/5] tools/call => " + pretty(result));
 
             // 5️⃣ GET 类工具演示（按协议模式）
             if ("sync".equals(mode)) {
@@ -225,22 +231,25 @@ public class McpClient {
 
         JsonNode resp;
         try {
-            resp = webClient.post()
-                    .uri("/api/auth/tokenApply")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(Map.of(
-                            "clientId", clientId,
-                            "clientSecret", clientSecret
-                    ))
-                    .retrieve()
-                    .bodyToMono(JsonNode.class)
-                    .block();
+            resp = TokenApplyDemo.rsaToken(webClient);
+//            resp = webClient.post()
+//                    .uri("/api/auth/tokenApply")
+//                    .contentType(MediaType.APPLICATION_JSON)
+//                    .bodyValue(Map.of(
+//                            "clientId", clientId,
+//                            "clientSecret", clientSecret
+//                    ))
+//                    .retrieve()
+//                    .bodyToMono(JsonNode.class)
+//                    .block();
         } catch (WebClientResponseException e) {
             // 登录防爆破：clientId+IP 超限返回 429
             if (e.getStatusCode() == HttpStatusCode.valueOf(429)) {
                 throw new IllegalStateException("登录请求超限（429），请稍后重试");
             }
             throw new IllegalStateException("tokenApply 失败: HTTP " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
         if (resp == null) {
@@ -291,6 +300,16 @@ public class McpClient {
                 "2.0",
                 UUID.randomUUID().toString(),
                 "tools/list",
+                Map.of()
+        ));
+    }
+
+    /** MCP 标准 ping：检查当前会话仍然可用。 */
+    public JsonNode ping() {
+        return post(new McpRequest(
+                "2.0",
+                UUID.randomUUID().toString(),
+                "ping",
                 Map.of()
         ));
     }

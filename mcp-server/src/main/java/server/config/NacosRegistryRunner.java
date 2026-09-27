@@ -1,7 +1,7 @@
 package server.config;
 
 import com.alibaba.nacos.api.naming.NamingService;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 启动时向 Nacos 注册 mcp-server 服务
@@ -30,6 +32,8 @@ public class NacosRegistryRunner implements ApplicationRunner {
 
     @Value("${server.port:8081}")
     private int port;
+    @Value("${nacos.ip}")
+    private String ip;
 
     public NacosRegistryRunner(NamingService namingService) {
         this.namingService = namingService;
@@ -51,7 +55,9 @@ public class NacosRegistryRunner implements ApplicationRunner {
                 Thread.sleep(500);
             }
 
-            String ip = localIp();
+            if (ip == null || "".equals(ip)){
+                ip = localIp();
+            }
             namingService.registerInstance(serviceName, ip, port);
             log.info("已注册到 Nacos: {} -> {}:{}", serviceName, ip, port);
         } catch (Exception e) {
