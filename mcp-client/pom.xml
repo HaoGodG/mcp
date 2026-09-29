@@ -23,6 +23,34 @@
             <artifactId>bcprov-jdk18on</artifactId>
             <version>1.78.1</version>
         </dependency>
+        <dependency>
+            <groupId>open</groupId>
+            <artifactId>nbcb-ISFJ_v2_0_139_16_BAISC_JDK</artifactId>
+            <version>15</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}/libs/nbcb-ISFJ_v2_0_139_16_BAISC_JDK15.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>open</groupId>
+            <artifactId>nbcb-netsignapi</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}/libs/nbcb-netsignapi.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>open</groupId>
+            <artifactId>nbcb-SADK</artifactId>
+            <version>3.7.1.0</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}/libs/nbcb-SADK-3.7.1.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>logback</groupId>
+            <artifactId>nbcb-logback-cfca-jdk1.6</artifactId>
+            <version>4.2.1.0</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}/libs/nbcb-logback-cfca-jdk1.6-4.2.1.0.jar</systemPath>
+        </dependency>
     </dependencies>
 
     <properties>

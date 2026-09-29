@@ -4,8 +4,9 @@ server:
 # Nacos 服务注册
 nacos:
   enabled: true
-  server-addr: 127.0.0.1:8848
+  server-addr: 192.168.146.150:8848
   service-name: mcp-server
+  ip: ${MCP_NACOS_SELF_REGISTER_IP:192.168.146.1}  # 指定注册到 Nacos 的 IP；为空时自动探测本机 IP
 
 logging:
   level:

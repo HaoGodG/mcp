@@ -7,7 +7,7 @@ server:
 #  - enabled: false -> 使用 mcp.base-url 直连/走网关
 nacos:
   enabled: true
-  server-addr: 127.0.0.1:8848
+  server-addr: 192.168.146.150:8848
   # 发现目标：open-cloud-mcpgateway（网关）/ mcp-server（直连 server）
   service-name: open-cloud-mcpgateway
 

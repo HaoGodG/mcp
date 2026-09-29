@@ -1,11 +1,15 @@
 package client.request;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.Security;
@@ -15,6 +19,11 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+
+import nbcb.cfca.sadk.algorithm.common.PKIException;
+import nbcb.cfca.sadk.lib.crypto.JCrypto;
+import nbcb.cfca.sadk.lib.crypto.Session;
+import nbcb.cfca.sadk.system.Mechanisms;
 
 public class TokenApplyDemo {
 
@@ -27,11 +36,20 @@ public class TokenApplyDemo {
     private static final String SM2_APP_KEY =
             "da7124ee_4d92_42b1_a73c_8212823a682f";
 
+    private static final String CERT_APP_KEY =
+            "替换为 CERT 模式 appKey";
+
     // 替换为真实私钥
     private static final String RSA_PRIVATE_KEY_BASE64 = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCiPizjrxztp1ZzJYlkeercm2JG6e9jkuW7+o/8G/n9GCqqrTCTqnMSp92aVRFIyASMyT3UsAxMDA0lTT3jkWk7Bo7zuimXIDGRsyVeyMUzbtInn2NLCPufyOLqSHkDDfy+Y46ND1X2TjJ1xmxDSc6HeDHHfMhcU/UemcliMYMAJXQVXptJ4eYH7i5Gr40xYfXRN9ujWT35IRyB8rveRmsZlKAccnkrQoz3gBOpLC0UVRoPGoSVb8q1vA8ORamFh5+3oNuxC3ax3lvX7DzN2G5pg7TLgGTfj1Zd4+XxrMpzJpInun/zG1D5ko+3/cU8651Tz3nUTgcTVY2mtmu3EFSpAgMBAAECggEAehnk2q2tTcYEL8BuOCnw8XoXalsgiIXDU8dsmUXMzAdmBPE2f8tlswKWqlGfInE1y2agm/KqLolbU1lgXGXRFlUHPLI8Hrph089JLp5WmzCqBJvVtGDcThJ3g+5q9DuQnRB79fk2rpmHLE/apoFjZ1yzyfhFKgcdkJwYjUfJ2U8g0puF3WDiacOEvB7+a/vybyBBqyZp00dQaPo8Fg/LdUjM9gCi9ExI3hwg3RdQ0KYTfWigIJ+EcLdidH3zzmmmGkxOvZ9kwsVbn2c225TnUnEYV9GJFVzTLwCVmHaQcQ2US25/7e9CWhuPNJhjBsPEQnmfI5G5ccsKbHbm37h+qQKBgQDqnSlvwHu2rxbz0s/+Gn1lPuJS10RgyrqV98WYiud7U3VK1XhlxLQxnBflHu3vJ/uvLItwqjUEYMSbUDzifzKBIp2k6tVkZn7knAo8VJc1I3aqqe03tM+Kn7bvwpFjPv5AokdoAifo/7VIte4IoGsi5j8EZijixaouC7KgvX7CSwKBgQCxCDKNObPAR6aKOwzmOHEI+PcTX4I4Y2NsXksiBCKV2aMK/6xpjlwg8UTUivgG4nZRHLtqnM4FNPwA0UnaV2i53kHQoL8QfMDrFvQ/9/lXtqN2kFlB6dlhsaMKLANDXw+i6V7lV9a4/aS3VmWbwA/vYFxOyXB9kfDxt6NZQBlMWwKBgQDOoyGt1cCgxFHY6qJa0gYDuIEqKYOGJMh18cbNdfovuvAhuybRq5Bx6WN6X+V8sKCSRw+BachMVNaVXPRjIVjgOBbU/Ch6x3OX8n9pZ6/OE7Ae3I+cctog5E8BmULoQME7ODLgPpXcN+v5YJOIcZIrKNP0Ee6M3T/oUlFAFeahRQKBgBNc0iqgJQjizVRRIRgNFE/m6x8zUwrX1AgGSDFwQlghdbO+Qx1IdMslmGGm0XnvSwGUIuuGOwJWyTlNqsY2yT2LEae/7SXgfzk3SX+1n4/4aeiN4TVUXnJQ+4QhTDoSK6Ol4rsy4ElbdKiYyoQ+fX+xCmeToLobPD8z1qnsWNgBAoGAZyLM8HAlWlbDQuSpLZdAqrKy0wY0eA2nXJBz53ygf/PaMvbMhgAv8T4l7e+xOWw7ShuIWWK2dwu2stdujdA36xWkKGrPGSh6dqKe5HUGYoOUviy0XaQF6sPLc3wanr6B+rFX3XrdlqnKVyU40tBsQQCgnTqqwueGOtw/uvX9eJs=";
 
     // 替换为真实 SM2 私钥
     private static final String SM2_PRIVATE_KEY_BASE64 = "MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgEEQMz7zloaogtcFzEnYbxeTXoJ5HXEcCrA2qVRy9FPmgCgYIKoEcz1UBgi2hRANCAATVjAoxBZMw3apF0A5HbegpE8q1+CazPP88iNCYP1uG1SSOfR2pvTA37sIZLKw/EV2IJf8R4FOyIbqUDQdubd37";
+
+    // classpath 中的 PKCS#8 格式 SM2 私钥（文件内容为 Base64 文本）
+    private static final String CERT_PRIVATE_KEY_RESOURCE =
+            "77667c76_3503_4c04_95f7_fc10938c7942.sm2";
+
+    private static final Session CERT_SESSION = createCertSession();
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -45,6 +63,9 @@ public class TokenApplyDemo {
         JsonNode sm2Result = sm2token(webClient);
 
         System.out.println("SM2 token response: " + sm2Result);
+
+        JsonNode certResult = certToken(webClient);
+        System.out.println("CERT token response: " + certResult);
     }
 
     public static JsonNode sm2token(WebClient webClient) throws Exception {
@@ -65,6 +86,10 @@ public class TokenApplyDemo {
                 RSA_PRIVATE_KEY_BASE64
         );
         return rsaResult;
+    }
+
+    public static JsonNode certToken(WebClient webClient) throws Exception {
+        return request(webClient, CERT_APP_KEY, "CERT", readPrivateKeyResource());
     }
 
     private static JsonNode request(WebClient webClient,
@@ -111,6 +136,20 @@ public class TokenApplyDemo {
 
         PrivateKey privateKey;
 
+        if ("CERT".equalsIgnoreCase(algorithm)) {
+            if (CERT_SESSION == null) {
+                throw new IllegalStateException("CERT 会话初始化失败");
+            }
+            PrivateKey certPrivateKey = createGMPrivateKey(privateKeyBase64);
+            byte[] signed = new nbcb.cfca.sadk.util.Signature().p1SignMessage(
+                    String.valueOf(Mechanisms.M_SM3_SM2),
+                    content.getBytes(StandardCharsets.UTF_8),
+                    certPrivateKey,
+                    CERT_SESSION
+            );
+            return Base64.getEncoder().encodeToString(signed);
+        }
+
         if ("RSA".equalsIgnoreCase(algorithm)) {
             privateKey = KeyFactory.getInstance("RSA")
                     .generatePrivate(new PKCS8EncodedKeySpec(
@@ -141,6 +180,38 @@ public class TokenApplyDemo {
         signer.update(content.getBytes(StandardCharsets.UTF_8));
 
         return Base64.getEncoder().encodeToString(signer.sign());
+    }
+
+    private static PrivateKey createGMPrivateKey(String privateKeyBase64) throws Exception {
+        if (Security.getProvider("BC") == null) {
+            Security.addProvider(new BouncyCastleProvider());
+        }
+        return KeyFactory.getInstance("EC", "BC")
+                .generatePrivate(new PKCS8EncodedKeySpec(
+                        Base64.getDecoder().decode(privateKeyBase64)
+                ));
+    }
+
+    private static String readPrivateKeyResource() throws IOException {
+        ClassLoader classLoader = TokenApplyDemo.class.getClassLoader();
+        try (InputStream input = classLoader.getResourceAsStream(CERT_PRIVATE_KEY_RESOURCE)) {
+            if (input == null) {
+                throw new IOException("找不到 CERT 私钥资源: " + CERT_PRIVATE_KEY_RESOURCE);
+            }
+            return new String(input.readAllBytes(), StandardCharsets.UTF_8)
+                    .replaceAll("\\s+", "");
+        }
+    }
+
+    private static Session createCertSession() {
+        try {
+            String deviceName = JCrypto.JSOFT_LIB;
+            JCrypto.getInstance().initialize(deviceName, null);
+            return JCrypto.getInstance().openSession(deviceName);
+        } catch (PKIException e) {
+            System.err.println("generate cfca session exception: " + e.getMessage());
+            return null;
+        }
     }
 
     private static String base64(String value) {
